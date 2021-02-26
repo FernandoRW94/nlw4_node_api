@@ -6,6 +6,7 @@ import { SurveysRepository } from "../repositories/SurveysRepository";
 import SendEmailService from "../services/SendEmailService";
 
 import {resolve} from "path";
+import { AppError } from "../errors/AppError";
 
 class SendEmailController {
     async execute(request: Request, response: Response) {
@@ -17,17 +18,17 @@ class SendEmailController {
 
         const user = await usersRepository.findOne({email});
         if(!user) {
-            return response.status(400).json({message: "User does not exist."});
+            throw new AppError("User does not exist.", 400);
         }
 
         const survey = await surveysRepository.findOne({id: survey_id});
         if(!survey) {
-            return response.status(400).json({message: "Survey does not exist."});
+            throw new AppError("Survey does not exist.", 400);
         }
 
         const npsPath = resolve(__dirname, "..", "views", "emails", "npsMail.hbs");
         const emailVariables = {
-            user_id: user.id,
+            id: "",
             name: user.name,
             title: survey.title,
             description: survey.description,
@@ -44,8 +45,7 @@ class SendEmailController {
         });
 
         if(existingAnsweredSurvey) {
-            console.log("answered survey requested");
-            return response.status(400).json({message: "Survey already answered!"});
+            throw new AppError("Survey already answered!", 400);
         }
 
         const existingUnansweredSurvey = await surveysUsersRepository.findOne({
@@ -58,7 +58,7 @@ class SendEmailController {
         });
 
         if(existingUnansweredSurvey) {
-            console.log("unanswered survey requested");
+            emailVariables.id = existingUnansweredSurvey.id;
             await SendEmailService.execute("NPS <noreply@nps.com.br>", user.email, survey.title, npsPath, emailVariables);
             return response.status(200).json(existingUnansweredSurvey);
         }
@@ -69,7 +69,7 @@ class SendEmailController {
         });
         await surveysUsersRepository.save(newSurvey);
 
-        console.log("new survey requested");
+        emailVariables.id = newSurvey.id;
         await SendEmailService.execute("NPS <noreply@nps.com.br>", user.email, survey.title, npsPath, emailVariables);
         return response.status(201).json(newSurvey);
     }

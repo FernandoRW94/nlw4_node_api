@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getCustomRepository } from "typeorm";
+import { AppError } from "../errors/AppError";
 import { SurveysRepository } from "../repositories/SurveysRepository";
 
 class SurveyController {
@@ -25,7 +26,7 @@ class SurveyController {
         const surveysRepository = getCustomRepository(SurveysRepository);
 
         if(!request.params.id) {
-            return response.status(400).json({message: "Bad request"});
+            throw new AppError("Bad request", 400);
         }
 
         await surveysRepository.delete({id: request.params.id});
