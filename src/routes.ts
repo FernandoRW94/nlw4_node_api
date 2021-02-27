@@ -14,18 +14,24 @@ const answerController = new AnswerController();
 const npsController = new NPSController();
 
 // Users Routes
+router.get("/users", userController.show)
 router.post("/users", userController.create);
+router.patch("/users", userController.edit);
+router.delete("/users/:id", userController.delete);
 
 // Surveys Routes
-router.post("/surveys", surveyController.create);
 router.get("/surveys", surveyController.show);
+router.post("/surveys", surveyController.create);
+router.patch("/surveys", surveyController.edit);
 router.delete("/surveys/:id", surveyController.delete);
+
+// Answers routes
+router.get("/all-answers/", answerController.show);
+router.get("/answers/:value", answerController.execute);
+router.delete("/answers/:id", answerController.delete);
 
 // Emails routes
 router.post("/sendEmail", sendEmailController.execute);
-
-// Answers routes
-router.get("/answers/:value", answerController.execute);
 
 // NPS routes
 router.get("/nps/:survey_id", npsController.execute);

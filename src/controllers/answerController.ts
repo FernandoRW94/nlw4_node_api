@@ -10,7 +10,7 @@ class AnswerController {
 
         const valueNumber = Number(value);
 
-        if(valueNumber > 10 || valueNumber < 0){
+        if(isNaN(valueNumber) && valueNumber > 10 || valueNumber < 0){
             throw new AppError("Bad Request", 400);
         }
 
@@ -28,6 +28,25 @@ class AnswerController {
         await surveysUsersRepository.save(surveyUser);
 
         return response.json(surveyUser);
+    }
+
+    async delete(request: Request, response: Response) {
+        const surveysUsersRepository = getCustomRepository(SurveysUsersRepository);
+
+        if(!request.params.id) {
+            throw new AppError("Bad request", 400);
+        }
+
+        await surveysUsersRepository.delete({id: request.params.id});
+
+        return response.status(200).json({message: "SurveyUser was successfully deleted!"});
+    }
+
+    async show(request: Request, response: Response) {
+        const surveysUsersRepository = getCustomRepository(SurveysUsersRepository);
+        const surveys = await surveysUsersRepository.find();
+
+        return response.json(surveys);
     }
 }
 

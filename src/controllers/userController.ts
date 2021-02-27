@@ -50,6 +50,56 @@ class UserController {
 
         return res.status(201).json(user);
     }
+
+    async edit(req: Request, res: Response) {
+        const { name, id } = req.body;
+
+        const schema = yup.object().shape({
+            name: yup.string().required("Name is required."),
+            id: yup.string().required("Id is required.")
+        });
+
+        try{
+            await schema.validate(req.body, {
+                abortEarly: false // Displays all validation errors at once.
+            });
+        }catch(error) {
+            throw new AppError("Bad request", 400, error);
+        }
+
+        const usersRepository = getCustomRepository(UsersRepository);
+
+        let user = await usersRepository.findOne({id});
+
+        if(!user) {
+            throw new AppError("Bad request", 400);
+        }
+
+        user.name = name;
+
+        await usersRepository.save(user);
+
+        return res.json(user);
+    }
+
+    async delete(req: Request, res: Response) {
+        const usersRepository = getCustomRepository(UsersRepository);
+
+        if(!req.params.id) {
+            throw new AppError("Bad request", 400);
+        }
+
+        await usersRepository.delete({id: req.params.id});
+
+        return res.status(200).json({message: "User successfully deleted!"});
+    }
+
+    async show(req: Request, res: Response) {
+        const usersRepository = getCustomRepository(UsersRepository);
+        const all = await usersRepository.find();
+
+        return res.json(all);
+    }
 }
 
 export { UserController };
