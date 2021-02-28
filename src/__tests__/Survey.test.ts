@@ -17,20 +17,38 @@ describe("Surveys", () => {
 
     it("Should be able to create a new survey", async () => {
         const response = await request(app).post("/surveys").send({
-                title: "Survey test title",
-                description: "Survey test description"
+                title: "Survey test 1 title",
+                description: "Survey test 1 description"
         });
 
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty("id");
     });
 
-    it("Should be able to get all surveys", async () => {
-        await request(app).post("/surveys").send({
-            title: "Title example get",
-            description: "test description 2"
+    it("Should be able to edit a survey", async() => {
+        const response = await request(app).post("/surveys").send({
+            title: "Survey test 2 title",
+            description: "Survey test 2 description"
         });
 
+        expect(response.status).toBe(201);
+
+        let survey2 = response.body;
+
+        survey2.title = "Survey test 2 title edit";
+        survey2.description = "Survey test 2 description edit";
+
+        const editResponse = await request(app).patch("/surveys").send({
+            title: survey2.title,
+            description: survey2.description,
+            id: survey2.id
+        });
+
+        expect(editResponse.status).toBe(200);
+        expect(editResponse.body.title).toBe("Survey test 2 title edit");
+    });
+
+    it("Should be able to get all surveys", async () => {
         const response = await request(app).get("/surveys");
         expect(response.body.length).toBe(2);
     });
@@ -50,11 +68,5 @@ describe("Surveys", () => {
 
         const getResponse = await request(app).get("/surveys");
         expect(getResponse.body.length).toBe(2);
-    });
-
-    it("Should not be able to delete a survey without declaring an ID", async () => {
-        const deleteResponse = await request(app).delete(`/surveys`);
-
-        expect(deleteResponse.status).toBe(404);
     });
 });
